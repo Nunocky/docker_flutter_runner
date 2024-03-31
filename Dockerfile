@@ -53,7 +53,7 @@ COPY agent.jar /home/$username/agent.jar
 RUN sudo chown $username:$username /home/$username/agent.jar
 RUN mkdir /home/$username/work
 
-ENTRYPOINT java -jar /home/$username/agent.jar -url http://host.docker.internal:8081/ -secret ********** -name "flutter_runner" -workDir /home/$username/work
+ENTRYPOINT java -jar /home/$username/agent.jar -url http://host.docker.internal:8081/ -secret 69cbb28064d551da179cbcdce1b5803823580c9dadeb6059efc3dbd5531e2ac5 -name "flutter_runner" -workDir /home/$username/work
 
-VOLUME ${GRADLE_HOME}
-VOLUME ${PUB_CACHE_HOME}
+#VOLUME ${GRADLE_HOME}
+#VOLUME ${PUB_CACHE_HOME}
