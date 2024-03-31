@@ -8,6 +8,7 @@ ARG userid=1000
 ARG groupid=1000
 ARG username=alice
 
+ENV username=$username
 ENV DEBIAN_FRONTEND=noninteractive
 
 #
@@ -28,6 +29,8 @@ RUN apt-get autoremove -y
 RUN apt-get clean 
 RUN rm -rf /var/lib/apt/lists/*
 
+RUN sdkmanager "emulator" 
+
 # Add user $username
 RUN groupadd -g $groupid $username 
 RUN useradd -m -u $userid --groups sudo -g $groupid $username 
@@ -45,15 +48,12 @@ ENV PATH="/home/${username}/.pub-cache/bin:/home/${username}/.local/bin:${PATH}"
 ENV GRADLE_HOME="/home/${username}/.gradle"
 ENV PUB_CACHE_HOME="/home/${username}/.pub-cache"
 
-RUN sdkmanager "emulator" 
-
 # run as a jenkins node
-#COPY agent.jar /home/${username}/agent.jar
-#RUN sudo chown $username:$username /home/${username}/agent.jar
-#RUN mkdir /home/${username}/work
-#CMD java -jar /home/${username}/agent.jar -url http://jenkins.local/ -secret ***** -name "flutter_runner" -workDir "/home/$username/work"
+COPY agent.jar /home/$username/agent.jar
+RUN sudo chown $username:$username /home/$username/agent.jar
+RUN mkdir /home/$username/work
 
-CMD /bin/bash -i
+ENTRYPOINT java -jar /home/$username/agent.jar -url http://host.docker.internal:8081/ -secret ********** -name "flutter_runner" -workDir /home/$username/work
 
 VOLUME ${GRADLE_HOME}
 VOLUME ${PUB_CACHE_HOME}
