@@ -7,6 +7,8 @@ if [ "$1" = "bash" ]; then
     --network=host \
     --add-host=host.docker.internal:host-gateway \
     -v "$(pwd)/work:/home/alice/work" \
+    -v "$(pwd)/dot_gradle:/home/alice/.gradle" \
+    -v "$(pwd)/dot_pub-cache:/home/alice/.pub-cache" \
     flutter-runner:1 bash -i
 else
   docker run -d \
@@ -14,6 +16,12 @@ else
     --network=host \
     --add-host=host.docker.internal:host-gateway \
     -v "$(pwd)/work:/home/alice/work" \
+    -v "$(pwd)/dot_gradle:/home/alice/.gradle" \
+    -v "$(pwd)/dot_pub-cache:/home/alice/.pub-cache" \
     flutter-runner:1
 fi
+
+
+#ENV GRADLE_HOME="/home/${username}/.gradle"
+#ENV PUB_CACHE_HOME="/home/${username}/.pub-cache"
 
