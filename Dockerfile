@@ -1,8 +1,8 @@
 # for ARM Mac
-FROM --platform=linux/x86_64 ghcr.io/cirruslabs/flutter:3.19.5
+#FROM --platform=linux/x86_64 ghcr.io/cirruslabs/flutter:3.19.5
 
 # for Windows (x86_64)
-#FROM ghcr.io/cirruslabs/flutter:3.19.5
+FROM ghcr.io/cirruslabs/flutter:3.19.5
 
 ARG userid=1000
 ARG groupid=1000
@@ -48,12 +48,20 @@ ENV PATH="/home/${username}/.pub-cache/bin:/home/${username}/.local/bin:${PATH}"
 ENV GRADLE_HOME="/home/${username}/.gradle"
 ENV PUB_CACHE_HOME="/home/${username}/.pub-cache"
 
+#
+RUN pip install -U pip 
+RUN pip install --no-cache-dir lcov_cobertura 
+RUN dart pub global activate junitreport
+
 # run as a jenkins node
-COPY agent.jar /home/$username/agent.jar
-RUN sudo chown $username:$username /home/$username/agent.jar
-RUN mkdir /home/$username/work
+ENV JENKINS_URL="http://host.docker.internal:8081/"
+ENV JENKINS_SECRET="*****"
+ENV AGENT_JAR_PATH=/home/$username/agent.jar
+ENV AGENT_WORK_DIR=/home/$username/work
 
-ENTRYPOINT java -jar /home/$username/agent.jar -url http://host.docker.internal:8081/ -secret 69cbb28064d551da179cbcdce1b5803823580c9dadeb6059efc3dbd5531e2ac5 -name "flutter_runner" -workDir /home/$username/work
+COPY agent.jar ${AGENT_JAR_PATH}
+RUN sudo chown $username:$username ${AGENT_JAR_PATH}
+RUN mkdir ${AGENT_WORK_DIR}
 
-#VOLUME ${GRADLE_HOME}
-#VOLUME ${PUB_CACHE_HOME}
+ENTRYPOINT java -jar ${AGENT_JAR_PATH} -url ${JENKINS_URL} -secret ${JENKINS_SECRET} -name "flutter_runner" -workDir ${AGENT_WORK_DIR}
+
