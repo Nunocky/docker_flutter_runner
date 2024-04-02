@@ -4,15 +4,9 @@ FROM --platform=linux/x86_64 ghcr.io/cirruslabs/flutter:3.19.5
 # for Windows (x86_64)
 #FROM ghcr.io/cirruslabs/flutter:3.19.5
 
-ARG userid=1000
-ARG groupid=1000
-ARG username=alice
-arg jenkins_url="http://host.docker.internal:8081/"
-ARG jenkins_node_name=butler
-arg jenkins_secret="*****"
-
-ENV username=$username
-
+ENV userid=1000
+ENV groupid=1000
+ENV username=runner
 ENV DEBIAN_FRONTEND=noninteractive
 
 #
@@ -43,6 +37,9 @@ RUN echo "${username}:${username}" | chpasswd
 RUN chown -R $username:$username $ANDROID_HOME 
 RUN chown -R $username:$username $FLUTTER_HOME
 
+COPY entrypoint.sh /home/${username}/entrypoint.sh
+RUN chmod +x /home/${username}/entrypoint.sh
+
 #
 # From now, run as a user
 #
@@ -52,29 +49,17 @@ ENV PATH="/home/${username}/.pub-cache/bin:/home/${username}/.local/bin:${PATH}"
 ENV GRADLE_HOME="/home/${username}/.gradle"
 ENV PUB_CACHE_HOME="/home/${username}/.pub-cache"
 
-#RUN mkdir -p ${GRADLE_HOME}
-#RUN mkdir -p ${PUB_CACHE_HOME}
+#RUN mkdir $GRADLE_HOME
+#RUN mkdir $PUB_CACHE_HOME
+#RUN chown -R $username:$username $GRADLE_HOME
+#RUN chown -R $username:$username $PUB_CACHE_HOME
 
 RUN pip install -U pip 
 RUN pip install --no-cache-dir lcov_cobertura 
 RUN dart pub global activate junitreport
 RUN dart pub global activate fvm
 
-# run as a jenkins node
-#ENV JENKINS_URL=$jenkins_url
-#ENV JENKINS_SECRET=$jenkins_secret
-#ENV JENKINS_NODE_NAME=$jenkins_node_name
-#ENV AGENT_WORK_DIR=/home/$username/work
-#ENV AGENT_JAR_PATH=/home/$username/agent.jar
-#
-#COPY agent.jar ${AGENT_JAR_PATH}
-#RUN sudo chown ${username}:${username} ${AGENT_JAR_PATH}
-#RUN mkdir ${AGENT_WORK_DIR}
-#
-#CMD java -jar ${AGENT_JAR_PATH} -url ${JENKINS_URL} -secret ${JENKINS_SECRET} -name ${JENKINS_NODE_NAME} -workDir ${AGENT_WORK_DIR}
-
-CMD bash -i
+CMD bash /home/${username}/entrypoint.sh
 
 VOLUME ${GRADLE_HOME}
 VOLUME ${PUB_CACHE_HOME}
-
