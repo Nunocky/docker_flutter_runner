@@ -4,14 +4,22 @@ FROM --platform=linux/x86_64 ghcr.io/cirruslabs/flutter:3.19.5
 # for Windows (x86_64)
 #FROM ghcr.io/cirruslabs/flutter:3.19.5
 
-ENV userid=1000
-ENV groupid=1000
+ARG userid=1000
+ARG groupid=1000
+
+ENV userid=$userid
+ENV groupid=$groupid
 ENV username=runner
-ENV DEBIAN_FRONTEND=noninteractive
+
+ENV PATH="/home/${username}/.pub-cache/bin:/home/${username}/.local/bin:${PATH}"
+ENV GRADLE_HOME="/home/${username}/.gradle"
+ENV PUB_CACHE_HOME="/home/${username}/.pub-cache"
 
 #
 # Run as root
 #
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update
 RUN apt-get install -y curl git unzip xz-utils zip libglu1-mesa
 RUN apt-get install -y \
@@ -40,19 +48,16 @@ RUN chown -R $username:$username $FLUTTER_HOME
 COPY entrypoint.sh /home/${username}/entrypoint.sh
 RUN chmod +x /home/${username}/entrypoint.sh
 
+RUN mkdir -p $GRADLE_HOME
+RUN chown -R $username:$username $GRADLE_HOME
+
+RUN mkdir -p $PUB_CACHE_HOME
+RUN chown -R $username:$username $PUB_CACHE_HOME
+
 #
 # From now, run as a user
 #
 USER $username
-
-ENV PATH="/home/${username}/.pub-cache/bin:/home/${username}/.local/bin:${PATH}"
-ENV GRADLE_HOME="/home/${username}/.gradle"
-ENV PUB_CACHE_HOME="/home/${username}/.pub-cache"
-
-#RUN mkdir $GRADLE_HOME
-#RUN mkdir $PUB_CACHE_HOME
-#RUN chown -R $username:$username $GRADLE_HOME
-#RUN chown -R $username:$username $PUB_CACHE_HOME
 
 RUN pip install -U pip 
 RUN pip install --no-cache-dir lcov_cobertura 
