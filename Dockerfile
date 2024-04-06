@@ -45,8 +45,10 @@ RUN echo "${username}:${username}" | chpasswd
 RUN chown -R $username:$username $ANDROID_HOME 
 RUN chown -R $username:$username $FLUTTER_HOME
 
-COPY entrypoint.sh /home/${username}/entrypoint.sh
-RUN chmod +x /home/${username}/entrypoint.sh
+ENV ENTRYPOINT_PATH=/home/${username}/entrypoint
+COPY entrypoint $ENTRYPOINT_PATH
+RUN chown -R $username:$username $ENTRYPOINT_PATH
+RUN chmod +x $ENTRYPOINT_PATH
 
 RUN mkdir -p $GRADLE_HOME
 RUN chown -R $username:$username $GRADLE_HOME
@@ -64,7 +66,7 @@ RUN pip install --no-cache-dir lcov_cobertura
 RUN dart pub global activate junitreport
 RUN dart pub global activate fvm
 
-CMD bash /home/${username}/entrypoint.sh
+CMD $ENTRYPOINT_PATH
 
 VOLUME ${GRADLE_HOME}
 VOLUME ${PUB_CACHE_HOME}
